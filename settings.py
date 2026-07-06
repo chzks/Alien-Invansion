@@ -13,3 +13,4 @@ class Settings():
         self.alien_speed_factor = 4
         self.fleet_drop_speed = 45
         self.fleet_direction = 1
+        self.ship_limit = 3
