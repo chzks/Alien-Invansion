@@ -1,19 +1,34 @@
+import sys
 import pygame
-from pygame import sprite
-from pygame.sprite import Sprite
+from settings import Settings
+from ship import Ship
+import game_functions as gf
+from pygame.sprite import Group
+from game_status import GameStatus
 
-class Alien(sprite.Sprite):
-    """Класс, представляющий одного пришельца."""
 
-    def __init__(self,ai_settings, screen):
-        """Инициализирует пришельца и задает его начальную позицию."""
-        super().__init__()
-        self.screen = screen
-        self.ai_settings = ai_settings
-        self.image = pygame.image.load('korabl_vrag.png')
-        self.rect = self.image.get_rect()
-        self.x = float(self.rect.x)
 
-    def blitme(self):
-        """Выводит пришельца в текущем положении."""
-        self.screen.blit(self.image,self.rect)
+def run_game():
+    """Инициализирует игру и создает обьект экрана."""
+    pygame.init()
+    ai_settings = Settings()
+    screen = pygame.display.set_mode((ai_settings.screen_width, ai_settings.screen_height))
+    bg_image = pygame.image.load("converted_image.png")
+    pygame.display.set_caption("Alien Invasion")
+    stats = GameStatus(ai_settings)
+    ship = Ship(screen)
+    bullets = Group()
+    aliens = Group()
+    gf.create_fleet(ai_settings,screen,ship,aliens)
+
+    while True:
+        gf.check_events(ai_settings,screen,ship,bullets)
+        if stats.game_active:
+            ship.update()
+            gf.update_bullets(ai_settings,screen,ship,aliens,bullets)
+            gf.update_aliens(ai_settings, stats, screen, ship, aliens,bullets)
+            gf.update_screen(ai_settings,bg_image, screen, ship,aliens,bullets)
+        else:
+            break
+
+run_game()
