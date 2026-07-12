@@ -32,7 +32,7 @@ def fire_bullets(ai_settings,screen,ship,bullets):
         bullets.add(new_bullet)
 
 
-def check_events(ai_settings,screen,stats,play_button,ship,aliens,bullets):
+def check_events(ai_settings,screen,stats,sb,play_button,ship,aliens,bullets):
     """Обрабатывает нажатия клавиш и события мыши."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -44,9 +44,9 @@ def check_events(ai_settings,screen,stats,play_button,ship,aliens,bullets):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x = pygame.mouse.get_pos()[0]
             mouse_y = pygame.mouse.get_pos()[1]
-            check_play_button_event(ai_settings, screen, stats, play_button, ship, aliens,bullets, mouse_x,mouse_y)
+            check_play_button_event(ai_settings, screen, stats,sb, play_button, ship, aliens,bullets, mouse_x,mouse_y)
 
-def check_play_button_event(ai_settings, screen, stats, play_button, ship, aliens,bullets, mouse_x,mouse_y):
+def check_play_button_event(ai_settings, screen, stats,sb, play_button, ship, aliens,bullets, mouse_x,mouse_y):
     """Запускает новую игру при нажатии кнопки Play Button."""
     button_clicked = play_button.rect.collidepoint(mouse_x,mouse_y)
     if button_clicked and not stats.game_active:
@@ -54,6 +54,9 @@ def check_play_button_event(ai_settings, screen, stats, play_button, ship, alien
         pygame.mouse.set_visible(False)
         stats.reset_status()
         stats.game_active = True
+        sb.prep_score()
+        sb.prep_high_score()
+        sb.prep_level()
         aliens.empty()
         bullets.empty()
         create_fleet(ai_settings,screen,ship,aliens)
@@ -86,11 +89,14 @@ def check_bullet_allien_colisions(ai_settings,screen,stats,sb,ship,aliens,bullet
     collisions = pygame.sprite.groupcollide(bullets,aliens,True,True)
     if collisions:
         for aliens in collisions.values():
-            stats.score += ai_settings.alien_points
+            stats.score += ai_settings.alien_points * len(aliens)
+            check_high_score(stats,sb)
     sb.prep_score()
     if len(aliens) == 0:
         bullets.empty()
         ai_settings.increase_speed()
+        stats.level += 1
+        sb.prep_level()
         create_fleet(ai_settings,screen,ship,aliens)
 
 def get_number_aliens_x(ai_settings,alien_width):
@@ -176,3 +182,8 @@ def check_aliens_bottom(ai_settings,stats,screen,ship,aliens,bullets):
             ship_hit(ai_settings,stats,screen,ship,aliens,bullets)
             break
 
+def check_high_score(stats,sb):
+    """Проверяяет, появился ли новый рекорд."""
+    if stats.score > stats.high_score:
+        stats.high_score = stats.score
+        sb.prep_high_score()
